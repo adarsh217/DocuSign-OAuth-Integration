@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>DocuSign API Example</title>
+	<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+	<h1>DocuSign API Example</h1>
+	<button id="get_template_details">Get Template Details</button>
+
+	<script>
+		$(document).ready(function() {
+			var access_token;
+
+			// Step 1: Redirect the user to the DocuSign login page to authenticate the user and obtain a code
+			$("#get_template_details").click(function() {
+				window.location.href = "https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature&client_id=53ffe67a-eba6-4d12-9475-914a05fc27a3&redirect_uri=<YOUR_REDIRECT_URI>";
+			});
+
+			// Step 2: Exchange the code for an access token and make an API request to get template details
+			if (window.location.href.includes("code")) {
+				var code = window.location.href.split("=")[1];
+				var redirect_uri = "<YOUR_REDIRECT_URI>";
+				var client_id = "53ffe67a-eba6-4d12-9475-914a05fc27a3";
+				var client_secret = "2c39f5c3-4bb7-46a4-b273-65dc4e28e704";
+
+				axios.post("https://account-d.docusign.com/oauth/token", {
+					grant_type: "authorization_code",
+					code: code,
+					redirect_uri: redirect_uri,
+					client_id: client_id,
+					client_secret: client_secret
+				})
+				.then(function(response) {
+					access_token = response.data.access_token;
+
+					axios.get("https://demo.docusign.net/restapi/v2/accounts/<YOUR_ACCOUNT_ID>/templates/<YOUR_TEMPLATE_ID>", {
+						headers: {
+							"Authorization": "Bearer " + access_token
+						}
+					})
+					.then(function(response) {
+						console.log(response.data);
+					})
+					.catch(function(error) {
+						console.log(error);
+					});
+				})
+				.catch(function(error) {
+					console.log(error);
+				});
+			}
+		});
+	</script>
+</body>
+</html>
